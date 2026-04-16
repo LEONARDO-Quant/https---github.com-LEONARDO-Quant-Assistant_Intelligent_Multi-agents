@@ -1,0 +1,12 @@
+chainlit
+faiss-cpu
+langchain
+langchain-classic
+langchain-community
+langchain-openai
+langchain-text-splitters
+numpy
+openai>=2.26.0,<3.0.0
+pypdf
+python-dotenv
+tqdm
