@@ -9,14 +9,14 @@ class MathAgent:
         self.model = "gpt-4o-mini"
         # Le System Prompt est ici configuré pour les mathématiques
         self.system_prompt = (
-            "Tu es un expert en mathématiques et physique. "
-            "Ton rôle est d'extraire et de présenter les FORMULES MATHÉMATIQUES du contexte. "
+            "Extrait les formules mathématiques, les notations statistiques et les équations (ex: Loss functions, Gradient Descent, distributions). 
+            À utiliser pour les demandes de démonstrations ou de précisions mathématiques."
             "Règles strictes :\n"
             "1. Donne la formule principale en format LaTeX (entre $$).\n"
             "2. Explique chaque variable de la formule.\n"
             "3. Si aucune formule n'est trouvée, dis : 'Aucune équation mathématique détectée dans ce passage'."
         )
-
+        
     def answer(self, user_query: str):
         # On utilise le même outil RAG
         context = self.rag_tool.run(user_query)
