@@ -37,19 +37,21 @@ class RAGDocumentTool:
             return f"Erreur PDF {path.name}: {e}"
 
     def _load_and_split(self) -> list[str]:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap
-        )
-        chunks = []
+        splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+        docs_data = [] # On change le nom pour la clarté
+    
         for path in self.docs_dir.rglob("*"):
-            if path.suffix.lower() == ".txt":
-                text = path.read_text(encoding="utf-8", errors="ignore")
-            elif path.suffix.lower() == ".pdf":
-                text = self._read_pdf_text(path)
-            else:
-                continue
-            chunks.extend(splitter.split_text(text))
-        return chunks
+            if path.suffix.lower() in [".txt", ".pdf"]:
+                text = self._read_pdf_text(path) if path.suffix == ".pdf" else path.read_text()
+                chunks = splitter.split_text(text)
+                
+                for chunk in chunks:
+                    # On stocke le texte ET la source
+                    docs_data.append({
+                        "text": chunk,
+                        "source": path.name # Le nom du fichier sert d'étiquette
+                    })
+        return docs_data
 
     def _embed(self, texts: list[str]) -> list[list[float]]:
         res = openai.embeddings.create(model=self.embed_model, input=texts)
@@ -95,11 +97,14 @@ class RAGDocumentTool:
         return self._execute_search(query, k=3)
 
     def _execute_search(self, query: str, k: int) -> str:
-        if not self.index: return "Base vide."
-        q_vec = np.asarray(self._embed([query])[0], dtype=np.float32).reshape(1, -1)
-        _, idxs = self.index.search(q_vec, k)
-        retrieved_chunks = [self.chunks[i] for i in idxs[0]]
-        return "\n\n--- EXTRAIT DU COURS ---\n".join(retrieved_chunks)
+        results = []
+        for i in idxs[0]:
+            chunk_data = self.chunks[i] # Maintenant c'est un dictionnaire
+            # On crée une étiquette visuelle claire pour l'IA
+            formatted = f"[SOURCE: {chunk_data['source']}]\nCONTENU: {chunk_data['text']}"
+            results.append(formatted)
+        
+        return "\n\n---\n\n".join(results)
 
 # --- CRÉATION DES INSTANCES POUR TES AGENTS ---
 
