@@ -9,5 +9,6 @@ numpy
 openai>=2.26.0,<3.0.0
 pypdf
 python-dotenv
+python-docx
 tqdm
 streamlit
