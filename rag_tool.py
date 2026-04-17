@@ -91,7 +91,8 @@ class RAGDocumentTool:
 
     def run(self, query: str, k: int = 4) -> str:
         """
-        L'interface principale pour tes agents.
+        Recherche des explications théoriques, des définitions et des concepts de Machine Learning et Deep Learning. 
+        À utiliser pour répondre aux questions de type "C'est quoi ?" ou "Expliquez le fonctionnement de...".
         """
         if not self.index:
             return "Désolé, la base documentaire est vide."
