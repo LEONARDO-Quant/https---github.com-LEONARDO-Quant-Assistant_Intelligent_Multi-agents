@@ -116,6 +116,10 @@ class RAGDocumentTool:
         Utile pour les calculs, les fonctions de perte ou les démonstrations.
         """
         return self._execute_search(query, k=3)
+    
+    def run(self, query: str) -> str:
+        # On choisit une recherche par défaut pour le test
+        return self.run_theory_search(query)
 
     def _execute_search(self, query: str, k: int) -> str:
             # 1. Convertir la requête textuelle en vecteur via _embed
