@@ -50,7 +50,7 @@ class SchemaTool:
 
         # Rendu du composant
         # Ajuste la hauteur (height) selon la complexité attendue de tes schémas
-        components.html(html_code, height=600, scrolling=True)
+        components.html(html_code, height=800, scrolling=True)
 
 # --- Exemple d'utilisation rapide ---
 # tool = SchemaTool()

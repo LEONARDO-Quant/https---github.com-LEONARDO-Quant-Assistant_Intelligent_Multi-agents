@@ -1,7 +1,7 @@
 import streamlit as st
 import openai
 from agent_Master import MasterAgent 
-from agents import TextualAgent, MathAgent, WebAgent
+from agents import TextualAgent, MathAgent, WebAgent, SchemaTool
 from rag_tool import RAGDocumentTool, theory_engine, stats_engine 
 from dotenv import load_dotenv
 import os   
@@ -70,9 +70,44 @@ with col_chat:
             placeholder = st.empty()
             placeholder.markdown("🔍 *Le Maître consulte les experts...*")
             
-            # CORRECTION : On utilise la méthode .answer() définie dans ton Master
             response = st.session_state.master.answer(query)
-
             placeholder.markdown(response)
+            
+            # --- AJOUT CRUCIAL ICI ---
+            # On vérifie si le Master a généré un schéma lors de son dernier appel
+            if hasattr(st.session_state.master, 'current_schema') and st.session_state.master.current_schema:
+                st.write("---") # Petite ligne de séparation
+                tool = SchemaTool()
+                tool.render(st.session_state.master.current_schema)
+            # --------------------------
+
             st.session_state.chat_history.append({"role": "assistant", "content": response})
 
+
+with col_lab:
+    st.subheader("🧪 Laboratoire de Visualisation")
+    
+    # On crée un conteneur avec une hauteur définie et un scroll automatique
+    with st.container():
+        # CSS pour forcer la colonne de droite à défiler si elle déborde
+        st.markdown("""
+            <style>
+            [data-testid="column"]:nth-child(2) {
+                max-height: 90vh;
+                overflow-y: auto !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+        master = st.session_state.get("master")
+        
+        if master and hasattr(master, 'schema_history') and master.schema_history:
+            # On affiche les schémas
+            for i, schema_code in enumerate(reversed(master.schema_history)):
+                index_reel = len(master.schema_history) - i
+                with st.expander(f"📊 Schéma #{index_reel}", expanded=(i==0)):
+                    # On appelle le render ici
+                    tool = SchemaTool()
+                    tool.render(schema_code)
+        else:
+            st.info("Les schémas apparaîtront ici.")

@@ -14,8 +14,11 @@ class MasterAgent:
         self.web_agent = WebAgent()
         self.schema_agent = SchemaAgent()
 
+        self.schema_history = []  # Pour stocker les schémas générés et les afficher dans l'app
         # Initialisation de la mémoire
         self.chat_history = []
+        self.current_schema = None  # Pour stocker le dernier schéma généré
+
         
         self.system_prompt = (
             "Tu es l'Agent Master, le cerveau d'une application multi-experts. Analyse la requête en fonction de l'historique et de la question.\n"
@@ -26,7 +29,7 @@ class MasterAgent:
             "4. SCHEMA : Si l'utilisateur demande explicitement un schéma, un graphique ou une carte mentale.\n"
             "5. Si c'est une salutation ou une conversation banale, réponds directement par toi-même.\n\n"
             "Réponds UNIQUEMENT avec l'un de ces mots-clés au début : [THEORIE], [MATHS], [WEB], [SCHEMA] ou [DIRECT]."
-            "Si l'utilisateur pose une question de suivi (ex: 'Explique plus'), base-toi sur le dernier agent utilisé."
+            "Consulte toujours les 5 derniers échanges pour comprendre le contexte et les pronoms (ex: 'il', 'ça', 'encore')."
         )
 
     def answer(self, user_query: str):
@@ -43,48 +46,55 @@ class MasterAgent:
         )
         decision = routing_res.choices[0].message.content.upper()
 
-        # Initialisation de la variable de schéma pour éviter les blocages
-        self.current_schema = None
+        display_response = ""
+        full_response_for_memory = ""
 
         # 2. Délégation et récupération de la réponse
         if "[SCHEMA]" in decision:
-            print("🎨 Le Master délègue à l'Agent Schéma...")
             response = self.schema_agent.answer(user_query)
-            # Puisque le SchemaAgent ne renvoie QUE du code Mermaid, 
-            # on le stocke directement pour l'affichage
             self.current_schema = response
-            return "Voici le schéma généré pour votre demande :"
+            self.schema_history.append(response)
+            display_response = "Voici le schéma ajouté au laboratoire (colonne de droite) :"
+            full_response_for_memory = response # L'IA garde le code en mémoire
+
         elif "[THEORIE]" in decision:
-            print("🧠 Le Master délègue à l'Agent Textuel...")
             response = self.text_agent.answer(user_query)
+            full_response_for_memory = response
+            # Extraction si l'agent texte a aussi généré un schéma
+            match = re.search(r"SCHEMA_START(.*?)SCHEMA_END", response, re.DOTALL)
+            if match:
+                self.current_schema = match.group(1).strip()
+                self.schema_history.append(self.current_schema)
+                display_response = response.replace(match.group(0), "").strip()
+            else:
+                display_response = response
         elif "[MATHS]" in decision:
-            print("🔢 Le Master délègue à l'Agent Math...")
             response = self.math_agent.answer(user_query)
-            # On ajoute un attribut temporaire pour que l'App sache que c'est du math
-            self.last_agent_used = "MATHS"
-            self.last_formula = response
+            full_response_for_memory = response
+            match = re.search(r"SCHEMA_START(.*?)SCHEMA_END", response, re.DOTALL)
+            if match:
+                self.current_schema = match.group(1).strip()
+                self.schema_history.append(self.current_schema)
+                display_response = response.replace(match.group(0), "").strip()
         elif "[WEB]" in decision:
-            print("🌐 Le Master délègue à l'Agent Web...")
             response = self.web_agent.answer(user_query)
+            full_response_for_memory = response
+            display_response = response     
+            if match := re.search(r"SCHEMA_START(.*?)SCHEMA_END", response, re.DOTALL):
+                self.current_schema = match.group(1).strip()
+                self.schema_history.append(self.current_schema)
+                display_response = response.replace(match.group(0), "").strip()
         else:
-            # Conversation directe
-            conv_messages = [{"role": "system", "content": "Tu es un assistant utile."}]
-            conv_messages.extend(self.chat_history[-10:]) # Mémoire plus longue pour la parlote
-            conv_messages.append({"role": "user", "content": user_query})
-            
-            res = openai.chat.completions.create(model="gpt-4o-mini", messages=conv_messages)
-            response = res.choices[0].message.content
+            # Mode DIRECT
+            res = openai.chat.completions.create(
+                model="gpt-4o-mini", 
+                messages=[{"role": "system", "content": "Assistant utile."}] + self.chat_history[-5:] + [{"role": "user", "content": user_query}]
+            )
+            display_response = res.choices[0].message.content
+            full_response_for_memory = display_response
 
-        match = re.search(r"SCHEMA_START(.*?)SCHEMA_END", response, re.DOTALL)
-        if match:
-            # On stocke le code Mermaid dans l'instance pour que app2.py puisse le lire
-            self.current_schema = match.group(1).strip()
-            # On nettoie la réponse textuelle pour ne pas afficher le code brut dans le chat
-            response = response.replace(match.group(0), "").strip()
-
-        # 3. MISE À JOUR DE LA MÉMOIRE
+        # 3. MISE À JOUR DE LA MÉMOIRE (Contenu complet)
         self.chat_history.append({"role": "user", "content": user_query})
-        self.chat_history.append({"role": "assistant", "content": response})
+        self.chat_history.append({"role": "assistant", "content": full_response_for_memory})
         
-        return response
-    
+        return display_response
