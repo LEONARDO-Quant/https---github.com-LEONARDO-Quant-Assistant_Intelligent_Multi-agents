@@ -10,12 +10,12 @@ class TextualAgent:
         self.system_prompt = (
             "Tu es un expert en analyse textuelle. Explique les concepts pédagogiquement. "
             "CONSIGNE : Ne donne JAMAIS de formules, concentre-toi sur les idées."
-            "RÈGLE CRUCIALE : A la fin de chaque paragraphe ou explication, cite la source utilisée entre parenthèses, par exemple : (Source: Cours_ML_Stats_Chap2.pdf"
+            "RÈGLE CRUCIALE : A la fin de chaque paragraphe ou explication, cite la source utilisée entre parenthèses, par exemple : (Trouvé sur: Cours_ML_Stats_Chap2.pdf"
         )
 
     def answer(self, user_query: str):
         # CHANGEMENT : On appelle la méthode spécifique "theory_engine" pour le moteur de recherche de théorie
-        context = self.rag_tool.theory_engine(user_query) 
+        context = self.rag_tool.run(user_query) 
         
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -30,12 +30,13 @@ class MathAgent:
         self.system_prompt = (
             "Tu es un expert en mathématiques. Extrait les formules en format LaTeX ($$)."
             "Si aucune formule n'est trouvée, dis : 'Aucune équation détectée'."
-            "RÈGLE CRUCIALE : A la fin de chaque paragraphe ou explication, cite la source utilisée entre parenthèses, par exemple : (Source: Cours_ML_Stats_Chap2.pdf"
+            "RÈGLE CRUCIALE : A la fin de chaque paragraphe ou explication, cite la source utilisée entre parenthèses, par exemple : (Trouvé sur: Cours_ML_Stats_Chap2.pdf"
+            "Si vraiment aucun symbole mathématique n'existe pas dans le texte, alors dis : 'Aucune équation détectée'."
         )
 
     def answer(self, user_query: str):
         # CHANGEMENT : On appelle la méthode spécifique "stats_engine" pour le moteur de recherche de statistiques
-        context = self.rag_tool.stats_engine(user_query)
+        context = self.rag_tool.run(user_query)
 
         messages = [
             {"role": "system", "content": self.system_prompt},
