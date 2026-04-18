@@ -5,6 +5,8 @@ from agents import TextualAgent, MathAgent, WebAgent
 from rag_tool import RAGDocumentTool, theory_engine, stats_engine 
 from dotenv import load_dotenv
 import os   
+import numpy as np
+import pandas as pd
 
 # CHANGEMENT : On charge la clé API directement dans app.py pour éviter les problèmes de chargement dans les modules
 load_dotenv()
@@ -21,16 +23,18 @@ st.set_page_config(
 )
 
 # Style CSS (Ton design conservé)
-st.markdown("""
+st.markdown(
+    """
     <style>
     .main { background-color: #f5f7f9; }
     .stChatMessage { border-radius: 15px; border: 1px solid #ddd; margin-bottom: 10px; }
-    .formula-zone {
-        background-color: #1e1e1e; color: #ffffff; padding: 20px;
-        border-radius: 10px; border-left: 5px solid #ff4b4b;
+    .source-tag { 
+        font-size: 0.8em; color: #007bff; background: #e7f3ff; 
+        padding: 2px 8px; border-radius: 10px; font-weight: bold;
     }
     </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True, 
+)
 
 # --- INITIALISATION DU SYSTÈME ---
 if "master" not in st.session_state:
@@ -68,31 +72,7 @@ with col_chat:
             
             # CORRECTION : On utilise la méthode .answer() définie dans ton Master
             response = st.session_state.master.answer(query)
-            
+
             placeholder.markdown(response)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
 
-with col_lab:
-    st.subheader("🧮 Laboratoire de Formules")
-    st.info("Cette zone est interactive. Ajustez les paramètres ci-dessous.")
-
-    # Ton simulateur de Régression Linéaire (Design maintenu)
-    with st.expander("Simulateur : Régression Linéaire (y = wx + b)", expanded=True):
-        st.latex(r"f(x) = w \cdot x + b")
-        
-        w = st.slider("Poids (Weight - w)", -10.0, 10.0, 2.0)
-        b = st.slider("Biais (Bias - b)", -20.0, 20.0, 5.0)
-        x_val = st.number_input("Entrée (x)", value=10.0)
-        
-        y_val = w * x_val + b
-        
-        st.markdown(f"""
-        <div class="formula-zone">
-            <strong>Résultat du calcul :</strong><br>
-            Prediction (y) = {y_val:.2f}
-        </div>
-        """, unsafe_allow_html=True)
-
-# --- FOOTER ---
-st.divider()
-st.caption("Projet Generative AI - Multi-Agent System avec RAG & FAISS.")

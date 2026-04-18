@@ -2,6 +2,8 @@
 import openai
 from web_tool import WebSearchTool, tavily_tool
 from rag_tool import theory_engine, stats_engine
+from schema_tool import SchemaTool
+
 
 
 class TextualAgent:
@@ -71,4 +73,35 @@ class WebAgent:
             messages=messages, 
             temperature=0.3
         )
+        return response.choices[0].message.content
+    
+
+class SchemaAgent:
+    def __init__(self):
+        self.system_prompt = (
+            "Tu es un expert en visualisation Mermaid.js. "
+            "Ta mission : transformer les concepts en diagrammes. "
+            "RÈGLES CRITIQUES :\n"
+            "1. Réponds EXCLUSIVEMENT avec le code Mermaid brut.\n"
+            "2. NE PAS mettre de balises Markdown (ex: pas de ```mermaid).\n"
+            "3. NE PAS ajouter de texte d'introduction ou de conclusion.\n"
+            "4. Commence directement par 'graph TD', 'graph LR' ou 'mindmap'.\n"
+            "5. Si la demande est une hiérarchie d'idées, utilise 'mindmap'."
+        )
+
+    def answer(self, user_query: str):
+        # On peut forcer l'IA à être encore plus spécifique dans la requête utilisateur
+        prompt_final = f"Génère un schéma Mermaid pour la requête suivante : {user_query}"
+        
+        messages = [
+            {"role": "system", "content": self.system_prompt},
+            {"role": "user", "content": prompt_final}
+        ]
+        
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini", 
+            messages=messages, 
+            temperature=0 # Plus stable pour du code
+        )
+        
         return response.choices[0].message.content

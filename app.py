@@ -21,6 +21,11 @@ st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
     .stChatMessage { border-radius: 15px; border: 1px solid #ddd; margin-bottom: 10px; }
+    [data-testid="column"]:nth-child(2) [data-testid="stVerticalBlock"] {
+        position: sticky;
+        top: 2rem;
+        height: max-content;
+    }
     .source-tag { 
         font-size: 0.8em; color: #007bff; background: #e7f3ff; 
         padding: 2px 8px; border-radius: 10px; font-weight: bold;
@@ -30,7 +35,9 @@ st.markdown("""
         border-radius: 10px; border-left: 5px solid #ff4b4b;
     }
     </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True, 
+)
+
 
 # --- INITIALISATION DU SYSTÈME (SESSION STATE) ---
 if "master" not in st.session_state:
@@ -76,34 +83,12 @@ with col_chat:
             placeholder.markdown(response)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
 
+
 with col_lab:
-    st.subheader("🧮 Laboratoire de Formules")
-    st.info("Cette zone s'active pour visualiser les paramètres des modèles détectés.")
-
-    # EXEMPLE INTERACTIF : Régression Linéaire
-    # (On pourrait automatiser cela en fonction de la détection de l'Agent Math)
-    with st.expander("Simulateur : Régression Linéaire (y = wx + b)", expanded=True):
-        st.latex(r"f(x) = w \cdot x + b")
-        
-        # Sliders pour jongler avec les paramètres
-        w = st.slider("Poids (Weight - w)", -10.0, 10.0, 2.0)
-        b = st.slider("Biais (Bias - b)", -20.0, 20.0, 5.0)
-        x_val = st.number_input("Entrée (x)", value=10.0)
-        
-        y_val = w * x_val + b
-        
-        st.markdown(f"""
-        <div class="formula-zone">
-            <strong>Résultat du calcul :</strong><br>
-            Prediction (y) = {y_val:.2f}
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.write("**Description des variables :**")
-        st.write("- **w** : La pente de la droite (importance de l'entrée).")
-        st.write("- **b** : L'ordonnée à l'origine (valeur si x=0).")
-        st.write("- **x** : Ta donnée d'entrée (Feature).")
-
-# --- FOOTER ---
-st.divider()
-st.caption("Projet Generative AI - Multi-Agent System avec RAG & FAISS.")
+    st.subheader("🔍 Carte Mentale")
+    if hasattr(st.session_state.master, 'current_schema') and st.session_state.master.current_schema:
+        from schema_tool import SchemaTool
+        st.session_state.schema_viewer = SchemaTool()
+        st.session_state.schema_viewer.render(st.session_state.master.current_schema)
+    else:
+        st.info("La structure logique de ton cours s'affichera ici.")
