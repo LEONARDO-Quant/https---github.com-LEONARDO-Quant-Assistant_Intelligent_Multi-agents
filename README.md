@@ -44,6 +44,21 @@ Le cœur du projet est un graphe d'états (**LangGraph**) où un agent **Orchest
   * **VectorStore** : FAISS (Facebook AI Similarity Search) pour une recherche vectorielle rapide.
   * **Mindmap Tool** : Rendu interactif de schémas via un `SchemaTool` personnalisé.
 
+<br>
+
+-----
+
+## 🎓 Contexte Académique
+
+Ce projet illustre l'implémentation pratique de concepts de **Generative AI** :
+
+  * Gestion de l'état (State Management) avec LangGraph.
+  * Optimisation du prompt engineering pour l'orchestration.
+  * Hybridation entre recherche sémantique locale (RAG) et recherche web.
+  * Visualisation de données non structurées.
+
+<br>
+
 -----
 
 ## 📂 Structure du Projet
@@ -83,17 +98,6 @@ Assistant_Intelligent_Projet/
     ```bash
     streamlit run app.py
     ```
-
------
-
-## 🎓 Contexte Académique
-
-Ce projet illustre l'implémentation pratique de concepts de **Generative AI** :
-
-  * Gestion de l'état (State Management) avec LangGraph.
-  * Optimisation du prompt engineering pour l'orchestration.
-  * Hybridation entre recherche sémantique locale (RAG) et recherche web.
-  * Visualisation de données non structurées.
 
 -----
 
