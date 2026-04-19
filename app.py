@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 from agents_langGraph import app  # Importation de ton graphe compilé
+from rag_tool import tools # Import de tes 4 outils
 from schema_tool import SchemaTool
 
 # --- 1. CONFIGURATION DE LA PAGE ---

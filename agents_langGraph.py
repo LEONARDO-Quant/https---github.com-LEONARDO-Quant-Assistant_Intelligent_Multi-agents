@@ -3,7 +3,8 @@ from typing import Annotated, TypedDict, List
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from rag_tool_v4 import tools # Import de tes 4 outils
+from rag_tool import tools # Import de tes 4 outils
+from schema_tool import SchemaTool 
 
 # État du graphe avec historique
 class AgentState(TypedDict):
@@ -13,6 +14,7 @@ class AgentState(TypedDict):
     output: str
 
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+schema_tool = SchemaTool()
 
 # --- NOEUD : ROUTER (L'ORCHESTRATEUR) ---
 def router(state: AgentState):
