@@ -92,36 +92,3 @@ agent_mindmap_tool = Tool(
 tools = [agent_text_tool, agent_formule_tool, web_search_tool, agent_mindmap_tool]
 
 
-if __name__ == "__main__":
-    print("=== INTERFACE DE TEST RAG INTERACTIVE ===")
-    print("Tape 'exit' pour quitter.\n")
-
-    while True:
-        user_input = input("Ta question : ")
-        if user_input.lower() in ['exit', 'quit']:
-            break
-        
-        print("\nQuel agent doit répondre ?")
-        print("1. AgentText (Analyse & Citations)")
-        print("2. AgentFormule (LaTeX & Citations)")
-        print("3. WebSearch (Résultats de recherche web)")
-        print("4. AgentMindmap (Carte mentale Mermaid)")
-        choix = input("Choix (1/2/3/4) : ")
-
-        print("\n--- Traitement en cours ---\n")
-        
-        try:
-            if choix == "1":
-                print(agent_text_tool.run(user_input))
-            elif choix == "2":
-                print(agent_formule_tool.run(user_input))
-            elif choix == "3":
-                print(web_search_tool.run(user_input))
-            elif choix == "4":
-                print(agent_mindmap_tool.run(user_input))
-            else:
-                print("Erreur : Choisis 1 ou 2.")
-        except Exception as e:
-            print(f"Erreur lors de l'exécution : {e}")
-        
-        print("\n" + "="*40 + "\n")
