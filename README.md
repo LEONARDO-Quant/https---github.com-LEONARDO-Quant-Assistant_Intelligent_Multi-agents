@@ -3,7 +3,7 @@
 </p> 
 
 
-# 🤖 Assistant Académique Multi-Agents (GenAI)
+# Assistant Académique Multi-Agents (GenAI)
 
 > **Projet réalisé dans le cadre du cours "Generative AI" à l'Université Paris 1 Panthéon-Sorbonne.**
 
@@ -12,9 +12,20 @@ Il repose sur une architecture **multi-agents** orchestrée par **LangGraph**, p
 
 -----
 
-## 🛠️ Stack Technique
 
------
+
+## 🛠️ Stack Technique & Outils
+
+![Python](https://img.shields.io/badge/Language-Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![LangChain](https://img.shields.io/badge/Framework-LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)
+![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-000000?style=for-the-badge&logo=langchain&logoColor=white)
+![OpenAI](https://img.shields.io/badge/LLM-GPT--4o--mini-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Interface-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![FAISS](https://img.shields.io/badge/VectorStore-FAISS-00599C?style=for-the-badge&logo=meta&logoColor=white)
+![Tavily](https://img.shields.io/badge/Search-Tavily_AI-FF6F00?style=for-the-badge&logo=google-chrome&logoColor=white)
+![VS Code](https://img.shields.io/badge/IDE-VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+
+<br>
 
 ## 🧠 Architecture du Système
 
