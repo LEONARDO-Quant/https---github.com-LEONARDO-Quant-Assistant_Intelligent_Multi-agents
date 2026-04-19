@@ -1,12 +1,12 @@
 import streamlit as st
-from agent_Master import MasterAgent
-from rag_tool import theory_engine, stats_engine
+import re
+from agents_langGraph import app  # Importation de ton graphe compilé
 from schema_tool import SchemaTool
 
-# --- CONFIGURATION DE LA PAGE ---
+# --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="IA Multi-Agents Pro", layout="wide")
 
-# --- STYLE CSS (DARK MODE & DESIGN) ---
+# --- 2. STYLE CSS (CONSERVATION DU DESIGN ORIGINAL) ---
 st.markdown("""
     <style>
     .stApp {
@@ -18,24 +18,23 @@ st.markdown("""
         padding: 10px;
         margin-bottom: 10px;
     }
-    /* Style pour la colonne latérale ou les onglets */
     [data-testid="stSidebar"] {
         background-color: #161B22;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- INITIALISATION DES AGENTS ET DE LA MÉMOIRE ---
-if "master_agent" not in st.session_state:
-    # On initialise l'agent une seule fois
-    st.session_state.master_agent = MasterAgent(theory_engine, stats_engine)
+# --- 3. INITIALISATION DE LA SESSION ---
+if "messages" not in st.session_state:
     st.session_state.messages = []
-    st.session_state.schemas = []  # Pour la page 2
+    st.session_state.schemas = []
+    # thread_id unique pour maintenir la mémoire LangGraph durant la session
+    st.session_state.thread_id = "session_streamlit_unique"
 
-# Instance de l'outil de rendu
+# Instance de l'outil de rendu pour Mermaid
 schema_tool = SchemaTool()
 
-# --- NAVIGATION ---
+# --- 4. NAVIGATION ---
 page = st.sidebar.selectbox("Navigation", ["💬 Chat Principal", "🧠 Laboratoire de Schémas"])
 
 # ---------------------------------------------------------
@@ -43,51 +42,71 @@ page = st.sidebar.selectbox("Navigation", ["💬 Chat Principal", "🧠 Laborato
 # ---------------------------------------------------------
 if page == "💬 Chat Principal":
     st.title("🤖 Assistant Intelligent Multi-Agents")
-    st.caption("Expert en Théorie, Stats, Web et Visualisation")
+    st.caption("Expert en Théorie, Stats, Web et Visualisation (Propulsé par LangGraph)")
 
-    # Affichage de l'historique
+    # Affichage de l'historique des messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     # Entrée utilisateur
     if prompt := st.chat_input("Posez votre question ici..."):
-        # Afficher le message utilisateur
+        # Affichage du message utilisateur
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Appel à l'Agent Master
+        # Appel à l'orchestrateur LangGraph
         with st.chat_message("assistant"):
-            with st.spinner("L'IA réfléchit..."):
-                # On passe l'historique pour le contexte
-                response = st.session_state.master_agent.answer(
-                    prompt, 
-                    history=st.session_state.messages
-                )
+            with st.spinner("L'IA réfléchit (Analyse des agents)..."):
                 
-                # Récupération du schéma s'il y en a un nouveau
-                if st.session_state.master_agent.current_schema:
-                    new_schema = st.session_state.master_agent.current_schema
-                    if new_schema not in st.session_state.schemas:
-                        st.session_state.schemas.append(new_schema)
-                    st.info("💡 Un nouveau schéma a été généré dans le Laboratoire !")
+                # Configuration de la mémoire via thread_id
+                config = {"configurable": {"thread_id": st.session_state.thread_id}}
+                
+                try:
+                    # Exécution du graphe
+                    # On ne passe pas l'historique manuellement, le Checkpointer s'en charge
+                    result = app.invoke({"input": prompt}, config=config)
+                    
+                    response = result.get("output", "Désolé, je n'ai pas pu générer de réponse.")
+                    node_used = result.get("next_node", "agent")
 
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                    # --- GESTION DES SCHÉMAS (MERMAID) ---
+                    # Si le nœud mindmap est utilisé ou si le code contient 'mindmap'
+                    if node_used == "mindmap" or "mindmap" in response.lower():
+                        clean_code = response
+                        if "```mermaid" in response:
+                            clean_code = response.split("```mermaid")[1].split("```")[0].strip()
+                        elif "mindmap" in response:
+                            clean_code = "mindmap" + response.split("mindmap", 1)[1].strip()     # Rendu visuel dans le chat
+                        
+                        schema_tool.render(clean_code)  # Affichage dans le chat
+                        if clean_code not in st.session_state.schemas:
+                            st.session_state.schemas.append(clean_code)
+                            st.info("💡 Schéma ajouté au Laboratoire !")
+                    else:
+                        st.markdown(response)  # Affichage normal pour les autres réponses
+
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                
+                except Exception as e:
+                    st.error(f"Erreur lors de l'exécution du graphe : {e}")
 
 # ---------------------------------------------------------
 # PAGE 2 : LABORATOIRE DE SCHÉMAS
 # ---------------------------------------------------------
 elif page == "🧠 Laboratoire de Schémas":
     st.title("Visualisation Graphique")
-    st.write("Retrouvez ici tous les schémas, mindmaps et graphiques générés durant la session.")
+    st.write("Historique des cartes mentales et schémas générés.")
 
     if not st.session_state.schemas:
-        st.info("Aucun schéma n'a encore été généré. Demandez un schéma ou une carte mentale dans le chat !")
+        st.info("Aucun schéma disponible. Demandez une 'carte mentale' dans le chat !")
     else:
-        # On affiche les schémas du plus récent au plus ancien
+        # Affichage inversé (du plus récent au plus ancien)
         for i, sc in enumerate(reversed(st.session_state.schemas)):
-            with st.expander(f"Schéma #{len(st.session_state.schemas) - i}", expanded=True):
+            index_schema = len(st.session_state.schemas) - i
+            with st.expander(f"Schéma #{index_schema}", expanded=True):
+                # Rendu visuel du Mermaid
                 schema_tool.render(sc)
-                st.code(sc, language="mermaid") # Optionnel : afficher le code source en dessous
+                # Affichage du code source pour copie
+                st.code(sc, language="mermaid")

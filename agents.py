@@ -20,7 +20,7 @@ class TextualAgent:
 
     def answer(self, user_query: str):
         # CHANGEMENT : On appelle la méthode spécifique "theory_engine" pour le moteur de recherche de théorie
-        context = self.rag_tool.run(user_query) 
+        context = self.rag_tool.theory_engine.run(user_query)
         
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -28,6 +28,7 @@ class TextualAgent:
         ]
         response = openai.chat.completions.create(model="gpt-4o-mini", messages=messages, temperature=0.2)
         return response.choices[0].message.content
+    
 
 class MathAgent:
     def __init__(self, rag_tool):
@@ -41,7 +42,7 @@ class MathAgent:
 
     def answer(self, user_query: str):
         # CHANGEMENT : On appelle la méthode spécifique "stats_engine" pour le moteur de recherche de statistiques
-        context = self.rag_tool.run(user_query)
+        context = self.rag_tool.stats_engine.run(user_query)
 
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -81,6 +82,7 @@ class WebAgent:
 
 class SchemaAgent:
     def __init__(self):
+        self.tool = SchemaTool()
         self.system_prompt = (
             "Tu es un expert en visualisation Mermaid.js. "
             "Ta mission : transformer les concepts en diagrammes. "
@@ -96,6 +98,8 @@ class SchemaAgent:
         # On peut forcer l'IA à être encore plus spécifique dans la requête utilisateur
         prompt_final = f"Génère un schéma Mermaid pour la requête suivante : {user_query}"
         
+        flux = self.tool.render(prompt_final)  # On peut aussi passer par un rendu direct pour plus de contexte visuel, à tester selon les besoins
+
         messages = [
             {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": prompt_final}

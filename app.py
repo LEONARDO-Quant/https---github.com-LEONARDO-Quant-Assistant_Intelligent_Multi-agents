@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import openai
 from agents import TextualAgent, MathAgent, WebAgent
-from agent_Master import MasterAgent
+from agent_Master_v0 import MasterAgent
 from rag_tool import RAGDocumentTool, theory_engine, stats_engine
 
 openai.api_key = st.secrets["OPENAI_API_KEY"]
