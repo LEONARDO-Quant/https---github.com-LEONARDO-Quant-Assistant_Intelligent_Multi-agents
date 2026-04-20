@@ -57,7 +57,7 @@ def text_node(state: AgentState):
     }
 
 def formula_node(state: AgentState):
-    query_context = f"{state['input']} (en lien avec: {state.get('chat_history', [])[-1:]})"
+    query_context = f"{state['input']} (en lien avec: {state.get('chat_history', [])[-5:]})"
     # 1. Récupération de la formule brute via l'outil RAG
     raw_output = tools[1].run(query_context)
     
@@ -99,7 +99,7 @@ def web_node(state: AgentState):
     }
 
 def mindmap_node(state: AgentState):
-    query_context = f"Sujet: {state['input']} (Basé sur les discussions précédentes: {state.get('chat_history', [])[-2:]})"
+    query_context = f"Sujet: {state['input']} (Basé sur les discussions précédentes: {state.get('chat_history', [])[-5:]})"
     res = tools[3].run(query_context)
     
     return {
